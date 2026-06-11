@@ -27,7 +27,7 @@ const SLIDES: Slide[] = [
     accent: '#2563EB',
     imageId: IMG.onboardExplore,
     title: 'Explore the world',
-    body: 'Search any city and uncover top hotels, attractions and restaurants — powered by real Tripadvisor data.',
+    body: 'Search any city and uncover top hotels, attractions and restaurants — powered by real, live travel data.',
   },
   {
     key: 'map',
@@ -65,8 +65,14 @@ export default function Onboarding() {
   };
 
   const next = () => {
-    if (index < SLIDES.length - 1) listRef.current?.scrollToIndex({ index: index + 1 });
-    else finish();
+    if (index >= SLIDES.length - 1) return finish();
+    const target = index + 1;
+    setIndex(target); // advance immediately even if viewability doesn't fire on web
+    try {
+      listRef.current?.scrollToIndex({ index: target, animated: true });
+    } catch {
+      listRef.current?.scrollToOffset({ offset: width * target, animated: true });
+    }
   };
 
   return (
@@ -81,6 +87,7 @@ export default function Onboarding() {
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewable}
         viewabilityConfig={{ itemVisiblePercentThreshold: 60 }}
+        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
         renderItem={({ item }) => (
           <View style={{ width, height }}>
             <Image

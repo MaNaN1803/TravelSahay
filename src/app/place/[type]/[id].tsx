@@ -283,7 +283,7 @@ export default function PlaceDetails() {
                 {place.web_url && (
                   <Pressable onPress={tripadvisor} style={{ alignSelf: 'flex-start' }}>
                     <AppText tone="primary" variant="caption" style={{ fontWeight: '700' }}>
-                      Read all reviews on Tripadvisor →
+                      Read all reviews →
                     </AppText>
                   </Pressable>
                 )}

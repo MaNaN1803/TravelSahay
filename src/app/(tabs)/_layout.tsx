@@ -34,6 +34,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="explore" options={{ title: 'Explore', tabBarIcon: icon('compass', 'compass-outline') }} />
       <Tabs.Screen name="map" options={{ title: 'Map', tabBarIcon: icon('map', 'map-outline') }} />
       <Tabs.Screen name="trips" options={{ title: 'Trips', tabBarIcon: icon('airplane', 'airplane-outline') }} />
+      <Tabs.Screen name="ai" options={{ title: 'AI', tabBarIcon: icon('sparkles', 'sparkles-outline') }} />
       <Tabs.Screen name="diary" options={{ title: 'Diary', tabBarIcon: icon('book', 'book-outline') }} />
       <Tabs.Screen name="profile" options={{ title: 'Profile', tabBarIcon: icon('person', 'person-outline') }} />
     </Tabs>

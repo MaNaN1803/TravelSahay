@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, Alert, Linking } from 'react-native';
+import { View, ScrollView, Pressable, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing, radius, shadow, type ThemeMode } from '@/theme';
@@ -136,9 +136,9 @@ export default function ProfileScreen() {
 
         {/* Data */}
         <Group title="Data">
-          <Row icon="server-outline" label="Places data" value="Tripadvisor (RapidAPI)" status={hasRapidApi} />
+          <Row icon="server-outline" label="Places data" value="Live travel data" status={hasRapidApi} />
           <Divider />
-          <Row icon="map-outline" label="Search & maps" value={hasGoogleMaps ? 'Google Maps' : 'Travel Advisor'} status={hasGoogleMaps} />
+          <Row icon="map-outline" label="Search & maps" value={hasGoogleMaps ? 'Enhanced' : 'Standard'} status={hasGoogleMaps} />
           <Divider />
           <Pressable
             onPress={() =>
@@ -154,9 +154,7 @@ export default function ProfileScreen() {
 
         {/* About */}
         <Group title="About">
-          <Pressable onPress={() => Linking.openURL('https://expo.dev').catch(() => {})}>
-            <Row icon="information-circle-outline" label="TravelSahay" value="v2.0.0" chevron />
-          </Pressable>
+          <Row icon="information-circle-outline" label="TravelSahay" value="v2.0.0" />
           <Divider />
           <Row icon="phone-portrait-outline" label="Platform" value={scheme === 'dark' ? 'Dark mode' : 'Light mode'} />
         </Group>

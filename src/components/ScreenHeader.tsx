@@ -26,7 +26,7 @@ export function ScreenHeader({
       }}
     >
       <Pressable
-        onPress={() => router.back()}
+        onPress={() => (router.canGoBack() ? router.back() : router.replace('/(tabs)'))}
         hitSlop={8}
         style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' }}
       >

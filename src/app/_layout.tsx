@@ -17,6 +17,7 @@ import { OnboardingProvider, useOnboarding } from '@/state/OnboardingProvider';
 import { AuthProvider, useAuth } from '@/state/AuthProvider';
 import { DiaryProvider } from '@/state/DiaryProvider';
 import { FxProvider } from '@/state/FxProvider';
+import { OfflineProvider } from '@/state/OfflineProvider';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -76,6 +77,22 @@ function RootNavigator() {
         <Stack.Screen name="diary/new" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="diary/[id]" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="trips/[id]" />
+        <Stack.Screen name="ai/planner" />
+        <Stack.Screen name="ai/chat" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
+        <Stack.Screen name="ai/budget" />
+        <Stack.Screen name="ai/packing" />
+        <Stack.Screen name="ai/memories" />
+        <Stack.Screen name="ai/assist" />
+        <Stack.Screen name="ai/twin" />
+        <Stack.Screen name="ai/planners" />
+        <Stack.Screen name="social/index" />
+        <Stack.Screen name="social/feed" />
+        <Stack.Screen name="social/channels" />
+        <Stack.Screen name="social/pooling" />
+        <Stack.Screen name="social/matching" />
+        <Stack.Screen name="social/wallet" />
+        <Stack.Screen name="social/marketplace" />
+        <Stack.Screen name="social/rewards" />
       </Stack>
     </>
   );
@@ -96,7 +113,9 @@ export default function RootLayout() {
                         <DiaryProvider>
                           <FxProvider>
                             <PlacesProvider>
-                              <RootNavigator />
+                              <OfflineProvider>
+                                <RootNavigator />
+                              </OfflineProvider>
                             </PlacesProvider>
                           </FxProvider>
                         </DiaryProvider>

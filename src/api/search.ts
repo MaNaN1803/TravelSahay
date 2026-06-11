@@ -1,7 +1,13 @@
 import axios from 'axios';
+import { Platform } from 'react-native';
 import { ENV, hasGoogleMaps } from '@/lib/env';
 import { rapidClient } from './client';
+import { API_BASE } from './backend';
 import type { LocationSuggestion, Viewport, ResolvedLocation } from '@/types/place';
+
+// Browsers can't call Google's web-service endpoints directly (no CORS headers),
+// so on web we route through our backend proxy. Native calls Google directly.
+const ON_WEB = Platform.OS === 'web';
 
 /** Best-effort: last word of a Tripadvisor location_string is usually the country. */
 const COUNTRY_NAME_TO_CODE: Record<string, string> = {
@@ -33,10 +39,12 @@ export async function searchLocations(
 
 async function googleAutocomplete(q: string): Promise<LocationSuggestion[]> {
   try {
-    const { data } = await axios.get(`${GOOGLE_BASE}/autocomplete/json`, {
-      params: { input: q, types: '(cities)', key: ENV.googleMapsApiKey },
-      timeout: 15000,
-    });
+    const { data } = ON_WEB
+      ? await axios.get(`${API_BASE}/api/places/autocomplete`, { params: { input: q }, timeout: 15000 })
+      : await axios.get(`${GOOGLE_BASE}/autocomplete/json`, {
+          params: { input: q, types: '(cities)', key: ENV.googleMapsApiKey },
+          timeout: 15000,
+        });
     if (data?.status !== 'OK' && data?.status !== 'ZERO_RESULTS') return [];
     return (data?.predictions ?? []).map((p: any) => ({
       id: p.place_id,
@@ -89,14 +97,12 @@ export async function resolveViewport(
 
 async function googleViewport(placeId: string): Promise<ResolvedLocation | null> {
   try {
-    const { data } = await axios.get(`${GOOGLE_BASE}/details/json`, {
-      params: {
-        place_id: placeId,
-        fields: 'geometry,address_component',
-        key: ENV.googleMapsApiKey,
-      },
-      timeout: 15000,
-    });
+    const { data } = ON_WEB
+      ? await axios.get(`${API_BASE}/api/places/details`, { params: { place_id: placeId }, timeout: 15000 })
+      : await axios.get(`${GOOGLE_BASE}/details/json`, {
+          params: { place_id: placeId, fields: 'geometry,address_component', key: ENV.googleMapsApiKey },
+          timeout: 15000,
+        });
     const result = data?.result;
     const country = (result?.address_components ?? []).find((c: any) =>
       (c.types ?? []).includes('country'),
