@@ -1,54 +1,66 @@
-# TravelSahay - Your Ultimate Travel Companion App
+# TravelSahay 2.0 🌍✈️
 
-## Overview
-
-TravelSahay is an innovative mobile application crafted with React Native, Expo, NativeWind, and Tailwind CSS. 
-This real-time travel companion seamlessly integrates with Google Places API and Rapid API, 
-offering users a rich and interactive experience for trip planning and exploration.
+A complete, modern travel companion app — rebuilt from the ground up on **Expo SDK 56 / React Native 0.85 / React 19** with TypeScript and file-based routing. Search any city and explore real **Tripadvisor** hotels, attractions and restaurants on a polished UI that runs natively on **iOS and Android** (and degrades gracefully on web).
 
 ## Features
 
-- **Global Search:** Explore any location on the globe and uncover a wealth of information about top picks, attractions, hotels, and restaurants.
+- **Explore** — search any city (Google Places), switch between Hotels / Attractions / Restaurants, see live results as image cards.
+- **Filters & Sort** — minimum rating, price level, open-now, and sort by rating / reviews / name.
+- **Interactive Map** — results as rating markers on a native map, tap for a preview card, jump to your location. (List fallback on web.)
+- **Place Details** — hero gallery, rating / price / ranking stats, description, cuisine chips, tap-to-call / directions / website, and a context-aware booking CTA.
+- **Favorites** — save places locally (AsyncStorage), filter by category, persists across launches.
+- **Dark mode** — System / Light / Dark, remembered between sessions.
+- **Onboarding** — first-launch carousel, shown once.
 
-- **Explore Options:** Immerse yourself in a world of possibilities with detailed insights into attractions, hotels, and restaurants at your chosen destination.
+## Tech stack
 
-- **Real-Time Data:** Tap into the power of real-time data from Google Places API and Rapid API, ensuring you have the latest information about your selected places.
+| Area | Choice |
+|------|--------|
+| Framework | Expo SDK 56, React Native 0.85, React 19 |
+| Language | TypeScript (strict) |
+| Navigation | Expo Router (file-based, bottom tabs + stacks) |
+| Data | Tripadvisor via RapidAPI (`travel-advisor`) |
+| Search | Google Places Autocomplete (Travel Advisor fallback) |
+| Maps | `react-native-maps` (Google on Android, Apple on iOS) |
+| Styling | StyleSheet design-token system with full theming |
+| Storage | `@react-native-async-storage/async-storage` |
 
-- **Individual Place Details:** Delve into comprehensive details about a specific restaurant, attraction, or hotel.
-- From ratings and price range to open/closed status and contact details, TravelSahay provides in-depth information.
+## Project structure
 
-- **Booking Options:** Effortlessly book your favorite restaurants or hotels directly from the app. TravelSahay simplifies your travel planning.
+```
+src/
+  app/                      # Expo Router routes
+    _layout.tsx             # providers + onboarding gate
+    onboarding.tsx
+    (tabs)/                 # Explore · Map · Favorites · Profile
+    place/[type]/[id].tsx   # place details
+  api/                      # travelAdvisor, search, axios client
+  components/               # PlaceCard, CategoryTabs, SearchModal, FilterSheet, PlacesMap, ui/
+  state/                    # ThemeProvider, FavoritesProvider, PlacesProvider
+  lib/                      # env, storage, place helpers, nav, placeCache
+  theme/                    # design tokens + provider
+  types/                    # Place / domain types
+```
 
-- **Favorites:** Save your preferred places with the 'Add to Favorites' feature for quick access to your top picks.
+## Getting started
 
-## Tech Stack
+1. Install deps:
+   ```bash
+   npm install
+   ```
+2. Copy env and add your keys (see `.env.example`):
+   ```bash
+   cp .env.example .env
+   ```
+   - `RAPIDAPI_KEY` — subscribe to **Travel Advisor** on RapidAPI.
+   - `GOOGLE_MAPS_API_KEY` — enable **Places API** + **Maps SDK (Android/iOS)** in Google Cloud.
+3. Run:
+   ```bash
+   npm run ios       # or: npm run android / npm run web
+   ```
+   > Maps and location require a Dev Client or native build (not Expo Go on SDK 56). `npx expo run:ios` / `npx expo run:android`.
 
-- **React Native:** Build powerful cross-platform mobile apps with the popular React Native framework.
-- **Node js:** Backend Integration and for working with APIs.
-- **Expo:** Rapidly develop, iterate, and deploy React Native applications with Expo's development tools.
+## Notes
 
-- **NativeWind:** Enhance the styling of your app with NativeWind for a sleek and native-like appearance.
-
-- **Tailwind CSS:** Streamline your CSS workflow with Tailwind CSS, ensuring a visually appealing design.
-
-- **Google Places API:** Access the extensive database of Google Places to fetch accurate and up-to-date information about locations.
-
-- **Rapid API Integration:** Leverage the capabilities of Rapid API for real-time data and enhance the overall user experience.
-
-## Getting Started
-
-To embark on your journey with TravelSahay, follow these simple steps:
-
-1. Clone the repository.
-2. Install dependencies using `npm install`.
-3. Set up your API keys for Google Places API and Rapid API.
-4. Run the app using `expo start`.
-
-## Contributions
-
-Contributions are welcomed! If you have any ideas for improvements or new features, feel free to open an issue or submit a pull request.
-
-## Connect with Us
-
-- App: Published on Expo
-- [Happy traveling with TravelSahay!] 🌍✈️
+- Secrets live in `.env` (gitignored) and are injected via `app.config.js` → `expo-constants`. Nothing is hardcoded in source.
+- **Restrict your Google key** (bundle IDs + API allowlist) before shipping.
