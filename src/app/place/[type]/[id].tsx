@@ -416,7 +416,7 @@ function ReviewCard({ review }: { review: Review }) {
           </AppText>
         )}
       </View>
-      {review.title && (
+      {!!review.title && (
         <AppText variant="subtitle" numberOfLines={1}>
           {review.title}
         </AppText>

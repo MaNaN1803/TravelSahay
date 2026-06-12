@@ -1,4 +1,5 @@
 import { rapidClient, ApiError } from './client';
+import { API_BASE } from './backend';
 import type { Place, PlaceType, Viewport } from '@/types/place';
 
 // Indore, India — sensible default region so the app shows data on first load.
@@ -17,6 +18,28 @@ export type ListParams = {
   unit?: 'km' | 'mi';
 };
 
+// Travel Advisor's hotel endpoints return 0 results on the free tier (they need a
+// paid booking partner). Hotels are sourced from Google Places (lodging) via our
+// backend proxy instead. Restaurants & attractions keep using Travel Advisor.
+async function listHotels(viewport: Viewport, limit: number): Promise<Place[]> {
+  const lat = (viewport.bl_latitude + viewport.tr_latitude) / 2;
+  const lng = (viewport.bl_longitude + viewport.tr_longitude) / 2;
+  const radius = Math.min(
+    Math.max(((viewport.tr_latitude - viewport.bl_latitude) / 2) * 111000, 2000),
+    40000,
+  );
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/places/nearby?lat=${lat}&lng=${lng}&radius=${Math.round(radius)}&type=lodging`,
+    );
+    const json = await res.json();
+    const list: Place[] = json?.data ?? [];
+    return list.filter((p) => p?.location_id && p?.name).slice(0, limit);
+  } catch (err) {
+    throw new ApiError('Failed to load hotels', err);
+  }
+}
+
 /** Fetch hotels / attractions / restaurants within a bounding box. */
 export async function listPlaces({
   type,
@@ -25,6 +48,7 @@ export async function listPlaces({
   currency = 'USD',
   unit = 'km',
 }: ListParams): Promise<Place[]> {
+  if (type === 'hotels') return listHotels(viewport, limit);
   try {
     const { data } = await rapidClient.get(`/${type}/list-in-boundary`, {
       params: {
@@ -55,12 +79,24 @@ export async function listPlaces({
   }
 }
 
+// Hotels come from Google (place_id), so their details come from the same proxy.
+async function getHotelDetails(placeId: string): Promise<Place | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/places/place-details?place_id=${encodeURIComponent(placeId)}`);
+    const json = await res.json();
+    return (json?.place as Place) ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Fetch rich details for a single place. */
 export async function getPlaceDetails(
   type: PlaceType,
   locationId: string,
   currency = 'USD',
 ): Promise<Place | null> {
+  if (type === 'hotels') return getHotelDetails(locationId);
   try {
     const { data } = await rapidClient.get(`/${type}/get-details`, {
       params: {
@@ -80,6 +116,16 @@ export async function getPlaceDetails(
 
 /** Fetch a gallery of photo URLs for a place. */
 export async function getPlacePhotos(locationId: string, limit = 8): Promise<string[]> {
+  // Google-sourced places (hotels) have non-numeric ids — use the Google proxy.
+  if (!/^\d+$/.test(locationId)) {
+    try {
+      const res = await fetch(`${API_BASE}/api/places/place-details?place_id=${encodeURIComponent(locationId)}`);
+      const json = await res.json();
+      return (json?.photos ?? []).slice(0, limit);
+    } catch {
+      return [];
+    }
+  }
   try {
     const { data } = await rapidClient.get('/photos/list', {
       params: { location_id: locationId, limit: String(limit), currency: 'USD', lang: 'en_US' },

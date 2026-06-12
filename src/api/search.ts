@@ -42,7 +42,8 @@ async function googleAutocomplete(q: string): Promise<LocationSuggestion[]> {
     const { data } = ON_WEB
       ? await axios.get(`${API_BASE}/api/places/autocomplete`, { params: { input: q }, timeout: 15000 })
       : await axios.get(`${GOOGLE_BASE}/autocomplete/json`, {
-          params: { input: q, types: '(cities)', key: ENV.googleMapsApiKey },
+          // No type filter — match cities, countries, regions, landmarks, hotels, etc.
+          params: { input: q, key: ENV.googleMapsApiKey },
           timeout: 15000,
         });
     if (data?.status !== 'OK' && data?.status !== 'ZERO_RESULTS') return [];
@@ -113,12 +114,19 @@ async function googleViewport(placeId: string): Promise<ResolvedLocation | null>
       const loc = result?.geometry?.location;
       return loc ? { viewport: viewportAround(loc.lat, loc.lng), countryCode: country } : null;
     }
+    // Clamp very large viewports (countries/regions) around their centre so place
+    // listing stays meaningful instead of spanning a whole country.
+    const cLat = (vp.southwest.lat + vp.northeast.lat) / 2;
+    const cLng = (vp.southwest.lng + vp.northeast.lng) / 2;
+    const MAX = 0.6; // ~65km half-span cap
+    const halfLat = Math.min(Math.abs(vp.northeast.lat - vp.southwest.lat) / 2, MAX);
+    const halfLng = Math.min(Math.abs(vp.northeast.lng - vp.southwest.lng) / 2, MAX);
     return {
       viewport: {
-        bl_latitude: vp.southwest.lat,
-        bl_longitude: vp.southwest.lng,
-        tr_latitude: vp.northeast.lat,
-        tr_longitude: vp.northeast.lng,
+        bl_latitude: cLat - halfLat,
+        tr_latitude: cLat + halfLat,
+        bl_longitude: cLng - halfLng,
+        tr_longitude: cLng + halfLng,
       },
       countryCode: country,
     };
