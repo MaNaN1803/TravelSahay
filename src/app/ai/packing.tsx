@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, View, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
 import { Screen, AppText, Card, Button, Field, Chip, Badge } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -16,8 +17,10 @@ type Saved = { result: PackingResult; checked: string[]; destination: string };
 export default function PackingScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
-  const [destination, setDestination] = useState('');
-  const [days, setDays] = useState('5');
+  const router = useRouter();
+  const params = useLocalSearchParams<{ destination?: string; days?: string }>();
+  const [destination, setDestination] = useState(params.destination ?? '');
+  const [days, setDays] = useState(params.days ?? '5');
   const [tripType, setTripType] = useState('General');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +33,8 @@ export default function PackingScreen() {
       if (s?.result) {
         setResult(s.result);
         setChecked(new Set(s.checked ?? []));
-        setDestination(s.destination ?? '');
+        // Don't clobber a destination passed in via navigation params.
+        if (!params.destination) setDestination(s.destination ?? '');
       }
     });
   }, []);
@@ -115,6 +119,12 @@ export default function PackingScreen() {
                 {result.reminders.map((r, i) => <AppText key={i} tone="muted">• {r}</AppText>)}
               </Card>
             ) : null}
+
+            <Card padded style={{ gap: spacing.sm }}>
+              <AppText variant="subtitle">✨ Next steps for {result.destination}</AppText>
+              <Button label="Plan this trip" icon="map" variant="secondary" onPress={() => router.push({ pathname: '/ai/planner', params: { destination: result.destination, days } })} fullWidth />
+              <Button label="Check safety" icon="shield-checkmark" variant="secondary" onPress={() => router.push({ pathname: '/ai/assist', params: { destination: result.destination } })} fullWidth />
+            </Card>
           </>
         )}
 

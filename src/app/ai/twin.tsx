@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, View, ActivityIndicator } from 'react-native';
+import { ScrollView, View, ActivityIndicator, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
 import { Screen, AppText, Card, Button, Field, Chip } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -16,6 +17,7 @@ const INTERESTS = ['Food', 'History', 'Nightlife', 'Nature', 'Beaches', 'Adventu
 export default function TravelTwinScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
+  const router = useRouter();
   const { trips } = useTrips();
   const { entries } = useDiary();
   const [profile, setProfile] = useState<TravelProfile | null>(null);
@@ -68,9 +70,19 @@ export default function TravelTwinScreen() {
         </Card>
 
         {suggested.length ? (
-          <Card padded style={{ gap: 6 }}>
+          <Card padded style={{ gap: spacing.sm }}>
             <AppText variant="subtitle">✈ Suggested next trips</AppText>
-            {suggested.map((s, i) => <AppText key={i} tone="muted">• {s}</AppText>)}
+            <AppText variant="caption" tone="muted">Tap one to plan it instantly.</AppText>
+            {suggested.map((s, i) => {
+              const dest = s.split(/[—\-:(]/)[0].trim() || s;
+              return (
+                <Pressable key={i} onPress={() => router.push({ pathname: '/ai/planner', params: { destination: dest } })} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: spacing.md, opacity: pressed ? 0.8 : 1 })}>
+                  <Ionicons name="map-outline" size={18} color={colors.primary} />
+                  <AppText style={{ flex: 1 }}>{s}</AppText>
+                  <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+                </Pressable>
+              );
+            })}
           </Card>
         ) : null}
 

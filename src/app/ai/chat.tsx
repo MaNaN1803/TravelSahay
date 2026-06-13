@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { View, TextInput, Pressable, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams } from 'expo-router';
 import { useTheme, spacing, radius, fontSize } from '@/theme';
 import { Screen, AppText } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -19,8 +20,9 @@ export default function ConciergeChatScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
   const { trips } = useTrips();
+  const params = useLocalSearchParams<{ destination?: string }>();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState(params.destination ? `Tell me about traveling to ${params.destination}` : '');
   const [streaming, setStreaming] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const cancelRef = useRef<(() => void) | null>(null);

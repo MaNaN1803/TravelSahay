@@ -22,6 +22,8 @@ type AuthContextValue = {
   /** Creates the account but does NOT sign in (user logs in afterwards). */
   register: (email: string, username: string, password: string) => Promise<void>;
   login: (identifier: string, password: string) => Promise<void>;
+  /** Updates the signed-in user's profile (username) on the backend + locally. */
+  updateUser: (username: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -64,6 +66,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
+  const updateUser = useCallback(
+    async (username: string) => {
+      if (!token) throw new Error('Not signed in');
+      const { user: updated } = await backend.updateProfile(username, token);
+      setUser(updated);
+      storage.set(KEY, { token, user: updated });
+    },
+    [token],
+  );
+
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
@@ -71,8 +83,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ token, user, isAuthed: !!token, ready, register, login, logout }),
-    [token, user, ready, register, login, logout],
+    () => ({ token, user, isAuthed: !!token, ready, register, login, updateUser, logout }),
+    [token, user, ready, register, login, updateUser, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -90,6 +90,7 @@ function RootNavigator() {
         <Stack.Screen name="social/channels" />
         <Stack.Screen name="social/pooling" />
         <Stack.Screen name="social/matching" />
+        <Stack.Screen name="social/buddies" />
         <Stack.Screen name="social/wallet" />
         <Stack.Screen name="social/marketplace" />
         <Stack.Screen name="social/rewards" />

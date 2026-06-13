@@ -23,6 +23,17 @@ export default function MatchingScreen() {
   const [saving, setSaving] = useState(false);
   const [locating, setLocating] = useState(false);
   const [verdicts, setVerdicts] = useState<Record<string, string>>({});
+  const [followed, setFollowed] = useState<Set<string>>(new Set());
+
+  const connect = async (m: Match) => {
+    if (!token || followed.has(m.userId)) return;
+    setFollowed((s) => new Set(s).add(m.userId)); // optimistic
+    try {
+      await community.follow(m.userId, token);
+    } catch {
+      setFollowed((s) => { const n = new Set(s); n.delete(m.userId); return n; });
+    }
+  };
 
   const trustCheck = async (m: Match) => {
     if (!token) return;
@@ -132,7 +143,9 @@ export default function MatchingScreen() {
             {m.interests?.length ? <AppText variant="caption" tone="muted">Interests: {m.interests.join(', ')}</AppText> : null}
             {verdicts[m.userId] ? <AppText variant="caption" tone={/high/i.test(verdicts[m.userId]) ? 'danger' : 'muted'}>🛡 {verdicts[m.userId]}</AppText> : null}
             <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-              <Button label="Connect" size="sm" variant="secondary" icon="person-add" onPress={() => token && community.follow(m.userId, token).catch(() => {})} />
+              {followed.has(m.userId)
+                ? <Button label="Connected ✓" size="sm" variant="secondary" icon="checkmark-circle" onPress={() => {}} />
+                : <Button label="Connect" size="sm" variant="secondary" icon="person-add" onPress={() => connect(m)} />}
               <Button label="Trust check" size="sm" variant="ghost" icon="shield-checkmark" onPress={() => trustCheck(m)} />
             </View>
           </Card>

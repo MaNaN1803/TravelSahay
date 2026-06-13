@@ -9,6 +9,7 @@ const ITEMS: { title: string; desc: string; icon: any; route: string; badge?: st
   { title: 'Travel Feed', desc: 'Posts, reviews, stories — like, comment & follow', icon: 'newspaper', route: '/social/feed' },
   { title: 'Travel Channels', desc: 'Public & private destination groups with chat & polls', icon: 'chatbubbles', route: '/social/channels' },
   { title: 'Travel Pooling', desc: 'Cluster with travellers, split costs, bulk deals', icon: 'people-circle', route: '/social/pooling', badge: 'Differentiator' },
+  { title: 'Travel Buddies', desc: 'Publish open trips, AI-match & combine plans with companions', icon: 'people', route: '/social/buddies', badge: 'New' },
   { title: 'Find Travellers', desc: 'Matching, compatibility & nearby travellers', icon: 'sparkles', route: '/social/matching' },
   { title: 'Group Wallet', desc: 'Shared trips, expenses & smart settlements', icon: 'wallet', route: '/social/wallet' },
   { title: 'Marketplace', desc: 'Buy itineraries, local guides & experiences', icon: 'storefront', route: '/social/marketplace' },

@@ -97,6 +97,16 @@ export type MemoryResult = {
 
 export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
+export type BuddyAnalysis = {
+  compatibility: number;
+  verdict: string;
+  sharedStrengths: string[];
+  potentialFriction?: string[];
+  icebreakers?: string[];
+  combinedPlanIdeas?: string[];
+  splitSavings?: string;
+};
+
 export type VisaResult = {
   fromCountry?: string; toCountry: string; visaRequired: boolean; visaType?: string;
   documentChecklist: string[]; processingTime?: string; estimatedCost?: string;
@@ -133,6 +143,9 @@ export const ai = {
     aiReq<{ ok: boolean; configured: boolean }>('/health', {}, token).catch(() => ({ ok: false, configured: false })),
 
   plan: (input: PlanInput, token: string) => aiReq<{ plan: TripPlan }>('/plan', input, token),
+
+  buddy: (input: { me: Record<string, unknown>; trip: Record<string, unknown>; owner?: Record<string, unknown> }, token: string) =>
+    aiReq<{ analysis: BuddyAnalysis }>('/buddy', input, token),
 
   specializedPlan: (vertical: string, input: Record<string, unknown>, token: string) =>
     aiReq<{ plan: TripPlan; vertical: string }>(`/planners/${vertical}`, input, token),

@@ -45,6 +45,9 @@ export const backend = {
   login: (identifier: string, password: string) =>
     req<AuthResult>('/auth/login', { method: 'POST', body: { identifier, password } }),
 
+  updateProfile: (username: string, token: string) =>
+    req<{ user: AuthUser }>('/auth/profile', { method: 'PUT', body: { username }, token }),
+
   getStore: <T>(key: string, token: string) =>
     req<{ key: string; data: T | null }>(`/store/${key}`, { token }),
 

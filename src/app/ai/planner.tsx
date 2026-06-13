@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
 import { Screen, AppText, Card, Button, Field, Chip, Badge } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -38,9 +38,10 @@ export default function PlannerScreen() {
   const router = useRouter();
   const { token } = useAuth();
   const { createTrip, addStop } = useTrips();
+  const params = useLocalSearchParams<{ destination?: string; days?: string }>();
 
-  const [destination, setDestination] = useState('');
-  const [days, setDays] = useState('3');
+  const [destination, setDestination] = useState(params.destination ?? '');
+  const [days, setDays] = useState(params.days ?? '3');
   const [budget, setBudget] = useState('');
   const [travelers, setTravelers] = useState('2');
   const [style, setStyle] = useState('Balanced');
@@ -207,6 +208,15 @@ export default function PlannerScreen() {
             ) : (
               <Button label="Save to my Trips" icon="airplane" onPress={saveToTrips} fullWidth />
             )}
+
+            <Card padded style={{ gap: spacing.sm }}>
+              <AppText variant="subtitle">✨ Next steps for {plan.destination}</AppText>
+              <Button label="Estimate budget" icon="wallet" variant="secondary" onPress={() => router.push({ pathname: '/ai/budget', params: { destination: plan.destination, days: String(plan.days.length) } })} fullWidth />
+              <Button label="Build a packing list" icon="briefcase" variant="secondary" onPress={() => router.push({ pathname: '/ai/packing', params: { destination: plan.destination, days: String(plan.days.length) } })} fullWidth />
+              <Button label="Ask AI about this trip" icon="chatbubbles" variant="secondary" onPress={() => router.push({ pathname: '/ai/chat', params: { destination: plan.destination } })} fullWidth />
+              <Button label="Find travel buddies" icon="people" variant="secondary" onPress={() => router.push('/social/buddies')} fullWidth />
+            </Card>
+
             <Button label="Plan another trip" variant="ghost" onPress={() => { setPlan(null); setSaved(false); }} fullWidth />
           </>
         )}

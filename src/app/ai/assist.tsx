@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
 import { Screen, AppText, Card, Button, Field, Chip, Badge } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -30,14 +31,18 @@ function Bullets({ title, items }: { title: string; items?: string[] }) {
 export default function AssistScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
+  const router = useRouter();
+  const params = useLocalSearchParams<{ destination?: string }>();
   const [tool, setTool] = useState<Tool>('safety');
-  const [a, setA] = useState('');
+  const [a, setA] = useState(params.destination ?? '');
   const [b, setB] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<any>(null);
 
-  const reset = (t: Tool) => { setTool(t); setResult(null); setError(null); setA(''); setB(''); };
+  // Switching tools keeps the destination (field a) so users can run several
+  // checks for the same place without retyping.
+  const reset = (t: Tool) => { setTool(t); setResult(null); setError(null); };
 
   const run = async () => {
     if (!token || !a.trim()) return;
@@ -166,6 +171,13 @@ export default function AssistScreen() {
 
         {result && tool === 'copilot' && (
           <Card padded><AppText style={{ lineHeight: 22 }}>{result.answer}</AppText></Card>
+        )}
+
+        {result && a.trim() && ['safety', 'visa', 'predictive', 'events'].includes(tool) && (
+          <Card padded style={{ gap: spacing.sm }}>
+            <AppText variant="subtitle">✨ Ready to go?</AppText>
+            <Button label={`Plan a trip to ${a.trim()}`} icon="map" variant="secondary" onPress={() => router.push({ pathname: '/ai/planner', params: { destination: a.trim() } })} fullWidth />
+          </Card>
         )}
       </ScrollView>
     </Screen>

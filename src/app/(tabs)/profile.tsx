@@ -1,12 +1,16 @@
+import { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing, radius, shadow, type ThemeMode } from '@/theme';
 import { useRouter } from 'expo-router';
-import { Screen, AppText, Chip } from '@/components/ui';
+import { Screen, AppText, Chip, Badge } from '@/components/ui';
 import { useFavorites } from '@/state/FavoritesProvider';
 import { useSettings, CURRENCY_SYMBOL, type Currency } from '@/state/SettingsProvider';
 import { useAuth } from '@/state/AuthProvider';
+import { useTrips } from '@/state/TripsProvider';
+import { useDiary } from '@/state/DiaryProvider';
+import { community, type Gamification } from '@/api/community';
 import { hasGoogleMaps, hasRapidApi } from '@/lib/env';
 
 const CURRENCIES: Currency[] = ['auto', 'USD', 'EUR', 'GBP', 'INR', 'AED'];
@@ -21,8 +25,34 @@ export default function ProfileScreen() {
   const { colors, scheme, mode, setMode } = useTheme();
   const { favorites, clear } = useFavorites();
   const { units, currency, setUnits, setCurrency } = useSettings();
-  const { user, logout } = useAuth();
+  const { user, token, updateUser, logout } = useAuth();
+  const { trips } = useTrips();
+  const { entries } = useDiary();
   const router = useRouter();
+  const [game, setGame] = useState<Gamification | null>(null);
+
+  // Pull gamification stats derived from this traveller's activity.
+  useEffect(() => {
+    if (!token) return;
+    const cities = new Set(trips.flatMap((t) => t.stops.map((s) => s.place.location_string).filter(Boolean))).size;
+    community
+      .gamification({ trips: trips.length, cities, diary: entries.length }, token)
+      .then((r) => setGame(r.gamification))
+      .catch(() => {});
+  }, [token, trips, entries]);
+
+  const editUsername = () => {
+    const apply = async (name?: string) => {
+      const v = (name ?? '').trim();
+      if (!v || v === user?.username) return;
+      try { await updateUser(v); } catch (e: any) { Alert.alert('Could not update', e?.message ?? 'Try again'); }
+    };
+    if (Alert.prompt) {
+      Alert.prompt('Edit username', 'Choose a new display name', apply, 'plain-text', user?.username ?? '');
+    } else {
+      Alert.alert('Edit username', 'Username editing needs a text prompt (iOS). Coming to Android soon.');
+    }
+  };
 
   const confirmLogout = () =>
     Alert.alert('Sign out', 'Sign out of your account?', [
@@ -47,7 +77,10 @@ export default function ProfileScreen() {
             contentFit="cover"
           />
           <View style={{ alignItems: 'center' }}>
-            <AppText variant="title">{user?.username || 'Traveler'}</AppText>
+            <Pressable onPress={editUsername} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <AppText variant="title">{user?.username || 'Traveler'}</AppText>
+              <Ionicons name="pencil" size={15} color={colors.textMuted} />
+            </Pressable>
             <AppText tone="muted">{user?.email || 'Welcome to TravelSahay'}</AppText>
           </View>
         </View>
@@ -59,6 +92,54 @@ export default function ProfileScreen() {
           <StatBox label="Eats" value={counts.restaurants} icon="restaurant" />
           <StatBox label="Sights" value={counts.attractions} icon="camera" />
         </View>
+
+        {/* Gamification */}
+        {game && (
+          <View style={[{ backgroundColor: colors.card, borderRadius: radius.lg, padding: spacing.lg, gap: spacing.md, borderWidth: scheme === 'dark' ? 1 : 0, borderColor: colors.border }, shadow(scheme, 1)]}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.primaryMuted, alignItems: 'center', justifyContent: 'center' }}>
+                <AppText variant="subtitle" tone="primary">{game.level}</AppText>
+              </View>
+              <View style={{ flex: 1 }}>
+                <AppText variant="subtitle">Level {game.level} Explorer</AppText>
+                <AppText tone="muted" variant="caption">{game.xp} XP · {game.toNext} XP to next level</AppText>
+              </View>
+              <Badge label={`Score ${game.explorerScore}`} tone="accent" />
+            </View>
+            <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.surfaceAlt, overflow: 'hidden' }}>
+              <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.primary, width: `${Math.min(100, Math.round((game.xp / Math.max(1, game.nextLevelXp)) * 100))}%` }} />
+            </View>
+            {game.badges.length ? (
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                {game.badges.map((b) => (
+                  <View key={b.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: colors.surfaceAlt, borderRadius: radius.pill, paddingHorizontal: spacing.md, paddingVertical: 6 }}>
+                    <Ionicons name={b.icon as any} size={14} color={colors.primary} />
+                    <AppText variant="caption">{b.label}</AppText>
+                  </View>
+                ))}
+              </View>
+            ) : <AppText tone="muted" variant="caption">Take trips & write diary entries to earn badges.</AppText>}
+          </View>
+        )}
+
+        {/* AI & Social */}
+        <Group title="AI & Social">
+          <Pressable onPress={() => router.push('/ai/twin')}>
+            <Row icon="person-circle-outline" label="Travel Twin" value="Your AI agent" chevron />
+          </Pressable>
+          <Divider />
+          <Pressable onPress={() => router.push('/social/buddies')}>
+            <Row icon="people-outline" label="Travel Buddies" value="Find companions" chevron />
+          </Pressable>
+          <Divider />
+          <Pressable onPress={() => router.push('/social')}>
+            <Row icon="globe-outline" label="Community Hub" chevron />
+          </Pressable>
+          <Divider />
+          <Pressable onPress={() => router.push('/social/rewards')}>
+            <Row icon="trophy-outline" label="Rewards & Challenges" chevron />
+          </Pressable>
+        </Group>
 
         {/* Appearance */}
         <Group title="Appearance">

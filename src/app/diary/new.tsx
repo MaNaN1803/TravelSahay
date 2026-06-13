@@ -99,7 +99,14 @@ export default function NewDiaryEntry() {
         location,
         photos,
       });
-      router.back();
+      Alert.alert(
+        'Memory saved ✨',
+        'Want AI to turn a trip into a polished diary, highlights & captions?',
+        [
+          { text: 'Not now', style: 'cancel', onPress: () => router.back() },
+          { text: 'Create AI memory', onPress: () => router.replace('/ai/memories') },
+        ],
+      );
     } catch (e: any) {
       setError(e?.message ?? 'Could not save');
     } finally {

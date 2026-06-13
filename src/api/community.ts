@@ -32,6 +32,14 @@ export type Post = {
 };
 export type Match = { userId: string; name: string; destination?: string; travelStyle?: string; interests?: string[]; ageGroup?: string; bio?: string; compatibility: number };
 export type PoolGroup = { key: string; destination: string; budgetTier: string; size: number; members: { userId: string; name: string }[]; perks: string[]; youIncluded: boolean };
+export type OpenTripRequest = { id: string; user: string; name: string; message: string; compatibility: number; status: 'pending' | 'accepted' | 'rejected'; createdAt: string };
+export type OpenTrip = {
+  _id: string; owner: string; ownerName: string; title: string; destination: string;
+  startDate?: string; endDate?: string; days: number; budget: number; travelStyle?: string;
+  interests?: string[]; notes?: string; maxBuddies: number; status: 'open' | 'closed';
+  buddies: { user: string; name: string }[]; requests?: OpenTripRequest[]; sharedTrip?: string;
+  spotsLeft?: number; compatibility?: number; myRequestStatus?: string | null; joined?: boolean; isOwner?: boolean;
+};
 export type Listing = { _id: string; sellerName: string; kind: string; title: string; destination: string; description: string; price: number; currency: string; verified: boolean; rating: number; ratingCount: number; itinerary?: any };
 export type Plan = { id: string; name: string; price: number; currency: string; perks: string[] };
 export type Gamification = { xp: number; level: number; explorerScore: number; badges: { id: string; label: string; icon: string }[]; nextLevelXp: number; toNext: number };
@@ -70,6 +78,16 @@ export const community = {
   findMatches: (t: string, dating = false) => req<{ matches: Match[] }>(`/match/find${dating ? '?dating=1' : ''}`, t),
   nearby: (t: string) => req<{ nearby: any[] }>('/match/nearby', t),
   pooling: (destination: string, t: string) => req<{ destination: string; groups: PoolGroup[] }>(`/match/pooling?destination=${encodeURIComponent(destination)}`, t),
+
+  /* travel buddies — open trips */
+  publishOpenTrip: (b: object, t: string) => req<{ trip: OpenTrip }>('/match/open-trips', t, { method: 'POST', body: b }),
+  browseOpenTrips: (t: string, destination = '') => req<{ trips: OpenTrip[] }>(`/match/open-trips${destination ? `?destination=${encodeURIComponent(destination)}` : ''}`, t),
+  myOpenTrips: (t: string) => req<{ trips: OpenTrip[] }>('/match/open-trips/mine', t),
+  getOpenTrip: (id: string, t: string) => req<{ trip: OpenTrip }>(`/match/open-trips/${id}`, t),
+  requestOpenTrip: (id: string, message: string, t: string) => req<{ ok: boolean }>(`/match/open-trips/${id}/request`, t, { method: 'POST', body: { message } }),
+  acceptBuddy: (id: string, reqId: string, t: string) => req<{ trip: OpenTrip }>(`/match/open-trips/${id}/request/${reqId}/accept`, t, { method: 'POST' }),
+  rejectBuddy: (id: string, reqId: string, t: string) => req<{ ok: boolean }>(`/match/open-trips/${id}/request/${reqId}/reject`, t, { method: 'POST' }),
+  toggleOpenTrip: (id: string, t: string) => req<{ status: string }>(`/match/open-trips/${id}/close`, t, { method: 'POST' }),
 
   /* market */
   plans: (t: string) => req<{ plans: Plan[] }>('/market/plans', t),

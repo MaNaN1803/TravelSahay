@@ -2,7 +2,7 @@ import { View, ScrollView, Pressable, Share, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
-import { Screen, AppText, EmptyState, Button } from '@/components/ui';
+import { Screen, AppText, EmptyState, Button, Card } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { PlaceCard } from '@/components/PlaceCard';
 import { useTrips, type TripStop } from '@/state/TripsProvider';
@@ -37,6 +37,19 @@ export default function TripDetail() {
   };
 
   const days = Array.from({ length: trip.days }, (_, i) => i + 1);
+  // Best-effort destination for AI deep-links (strip the "(AI)" suffix, fall back to a stop).
+  const destination = trip.title.replace(/\s*\(AI\)\s*$/i, '').trim() || trip.stops[0]?.place.location_string || '';
+
+  const aiActions = (
+    <Card padded style={{ gap: spacing.sm }}>
+      <AppText variant="subtitle">✨ AI actions for this trip</AppText>
+      <Button label="Get budget" icon="wallet" variant="secondary" onPress={() => router.push({ pathname: '/ai/budget', params: { destination, days: String(trip.days) } })} fullWidth />
+      <Button label="Packing list" icon="briefcase" variant="secondary" onPress={() => router.push({ pathname: '/ai/packing', params: { destination, days: String(trip.days) } })} fullWidth />
+      <Button label="Generate memories" icon="sparkles" variant="secondary" onPress={() => router.push('/ai/memories')} fullWidth />
+      <Button label="Find travel buddies" icon="people" variant="secondary" onPress={() => router.push('/social/buddies')} fullWidth />
+      <Button label="Share trip" icon="share-social" variant="ghost" onPress={shareTrip} fullWidth />
+    </Card>
+  );
 
   return (
     <Screen>
@@ -101,6 +114,7 @@ export default function TripDetail() {
           })}
 
           <Button label="Add a day" icon="add" variant="secondary" onPress={() => addDay(trip.id)} />
+          {aiActions}
         </ScrollView>
       )}
     </Screen>

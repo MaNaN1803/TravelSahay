@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ScrollView, View, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme, spacing, radius } from '@/theme';
 import { Screen, AppText, Card, Button, Field, Chip } from '@/components/ui';
 import { ScreenHeader } from '@/components/ScreenHeader';
@@ -49,8 +50,10 @@ function VariantCard({ v, currency }: { v: BudgetVariant; currency: string }) {
 export default function BudgetScreen() {
   const { colors } = useTheme();
   const { token } = useAuth();
-  const [destination, setDestination] = useState('');
-  const [days, setDays] = useState('5');
+  const router = useRouter();
+  const params = useLocalSearchParams<{ destination?: string; days?: string }>();
+  const [destination, setDestination] = useState(params.destination ?? '');
+  const [days, setDays] = useState(params.days ?? '5');
   const [travelers, setTravelers] = useState('2');
   const [origin, setOrigin] = useState('');
   const [loading, setLoading] = useState(false);
@@ -118,6 +121,11 @@ export default function BudgetScreen() {
                 {result.moneyTips.map((t, i) => <AppText key={i} tone="muted">• {t}</AppText>)}
               </Card>
             ) : null}
+            <Card padded style={{ gap: spacing.sm }}>
+              <AppText variant="subtitle">✨ Next steps for {result.destination}</AppText>
+              <Button label="Plan a trip here" icon="map" variant="secondary" onPress={() => router.push({ pathname: '/ai/planner', params: { destination: result.destination, days } })} fullWidth />
+              <Button label="Build a packing list" icon="briefcase" variant="secondary" onPress={() => router.push({ pathname: '/ai/packing', params: { destination: result.destination, days } })} fullWidth />
+            </Card>
             <Button label="New estimate" variant="ghost" onPress={() => setResult(null)} fullWidth />
           </>
         )}

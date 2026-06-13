@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { ScrollView, View, TextInput, Pressable, ActivityIndicator } from 'react-native';
+import { ScrollView, View, TextInput, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, spacing, radius, fontSize } from '@/theme';
 import { Screen, AppText, Card, Button, Chip, Badge, EmptyState } from '@/components/ui';
@@ -21,6 +21,7 @@ export default function FeedScreen() {
   const [posting, setPosting] = useState(false);
   const [commentFor, setCommentFor] = useState<string | null>(null);
   const [commentText, setCommentText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(() => {
     if (!token) return;
@@ -28,6 +29,12 @@ export default function FeedScreen() {
     community.feed(token, following).then((r) => setPosts(r.posts)).finally(() => setLoading(false));
   }, [token, following]);
   useEffect(load, [load]);
+
+  const onRefresh = useCallback(() => {
+    if (!token) return;
+    setRefreshing(true);
+    community.feed(token, following).then((r) => setPosts(r.posts)).finally(() => setRefreshing(false));
+  }, [token, following]);
 
   const submit = async () => {
     if (!token || !text.trim()) return;
@@ -56,7 +63,10 @@ export default function FeedScreen() {
   return (
     <Screen>
       <ScreenHeader title="Travel Feed" subtitle="Posts · reviews · stories" />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.x3 }}>
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.lg, gap: spacing.md, paddingBottom: spacing.x3 }}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />}
+      >
         <Card padded style={{ gap: spacing.sm }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.sm }}>
             {KINDS.map((k) => <Chip key={k} label={k} active={kind === k} onPress={() => setKind(k)} />)}
