@@ -77,6 +77,7 @@ function RootNavigator() {
         <Stack.Screen name="diary/new" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="diary/[id]" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="trips/[id]" />
+        <Stack.Screen name="profile/edit" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="ai/planner" />
         <Stack.Screen name="ai/chat" options={{ animation: 'slide_from_bottom', presentation: 'card' }} />
         <Stack.Screen name="ai/budget" />

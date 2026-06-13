@@ -25,7 +25,7 @@ export default function ProfileScreen() {
   const { colors, scheme, mode, setMode } = useTheme();
   const { favorites, clear } = useFavorites();
   const { units, currency, setUnits, setCurrency } = useSettings();
-  const { user, token, updateUser, logout } = useAuth();
+  const { user, token, logout } = useAuth();
   const { trips } = useTrips();
   const { entries } = useDiary();
   const router = useRouter();
@@ -40,19 +40,6 @@ export default function ProfileScreen() {
       .then((r) => setGame(r.gamification))
       .catch(() => {});
   }, [token, trips, entries]);
-
-  const editUsername = () => {
-    const apply = async (name?: string) => {
-      const v = (name ?? '').trim();
-      if (!v || v === user?.username) return;
-      try { await updateUser(v); } catch (e: any) { Alert.alert('Could not update', e?.message ?? 'Try again'); }
-    };
-    if (Alert.prompt) {
-      Alert.prompt('Edit username', 'Choose a new display name', apply, 'plain-text', user?.username ?? '');
-    } else {
-      Alert.alert('Edit username', 'Username editing needs a text prompt (iOS). Coming to Android soon.');
-    }
-  };
 
   const confirmLogout = () =>
     Alert.alert('Sign out', 'Sign out of your account?', [
@@ -77,7 +64,7 @@ export default function ProfileScreen() {
             contentFit="cover"
           />
           <View style={{ alignItems: 'center' }}>
-            <Pressable onPress={editUsername} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <Pressable onPress={() => router.push('/profile/edit')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <AppText variant="title">{user?.username || 'Traveler'}</AppText>
               <Ionicons name="pencil" size={15} color={colors.textMuted} />
             </Pressable>
@@ -241,6 +228,10 @@ export default function ProfileScreen() {
         </Group>
 
         <Group title="Account">
+          <Pressable onPress={() => router.push('/profile/edit')}>
+            <Row icon="create-outline" label="Edit profile" value="Name · password · persona" chevron />
+          </Pressable>
+          <Divider />
           <Pressable onPress={() => router.push('/(tabs)/diary')}>
             <Row icon="book-outline" label="Travel diary" chevron />
           </Pressable>

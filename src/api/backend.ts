@@ -48,6 +48,9 @@ export const backend = {
   updateProfile: (username: string, token: string) =>
     req<{ user: AuthUser }>('/auth/profile', { method: 'PUT', body: { username }, token }),
 
+  changePassword: (currentPassword: string, newPassword: string, token: string) =>
+    req<{ ok: boolean }>('/auth/password', { method: 'PUT', body: { currentPassword, newPassword }, token }),
+
   getStore: <T>(key: string, token: string) =>
     req<{ key: string; data: T | null }>(`/store/${key}`, { token }),
 

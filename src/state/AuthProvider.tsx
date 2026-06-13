@@ -24,6 +24,8 @@ type AuthContextValue = {
   login: (identifier: string, password: string) => Promise<void>;
   /** Updates the signed-in user's profile (username) on the backend + locally. */
   updateUser: (username: string) => Promise<void>;
+  /** Changes the signed-in user's password. */
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
   logout: () => void;
 };
 
@@ -76,6 +78,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [token],
   );
 
+  const changePassword = useCallback(
+    async (currentPassword: string, newPassword: string) => {
+      if (!token) throw new Error('Not signed in');
+      await backend.changePassword(currentPassword, newPassword, token);
+    },
+    [token],
+  );
+
   const logout = useCallback(() => {
     setToken(null);
     setUser(null);
@@ -83,8 +93,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AuthContextValue>(
-    () => ({ token, user, isAuthed: !!token, ready, register, login, updateUser, logout }),
-    [token, user, ready, register, login, updateUser, logout],
+    () => ({ token, user, isAuthed: !!token, ready, register, login, updateUser, changePassword, logout }),
+    [token, user, ready, register, login, updateUser, changePassword, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
