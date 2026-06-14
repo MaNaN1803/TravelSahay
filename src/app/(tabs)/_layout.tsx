@@ -1,20 +1,23 @@
 import { Tabs } from 'expo-router';
-import { Platform, View, type ColorValue } from 'react-native';
+import { View, type ColorValue } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme, radius, shadow } from '@/theme';
 
 export default function TabsLayout() {
   const { colors, scheme } = useTheme();
+  const insets = useSafeAreaInsets();
 
-  // Focused tabs get a rounded "pill" behind the icon so the active screen
-  // reads clearly and every item stays vertically aligned.
+  // Focused tabs get a rounded "pill" behind the icon. The pill is narrower than
+  // the tab slot so the first (Home) and last (Profile) items never clip the
+  // screen edges, and it stays centered for clean vertical + horizontal alignment.
   const icon =
     (name: keyof typeof Ionicons.glyphMap, outline: keyof typeof Ionicons.glyphMap) =>
     ({ color, focused }: { color: ColorValue; focused: boolean; size: number }) => (
       <View
         style={{
-          width: 52,
-          height: 32,
+          width: 40,
+          height: 30,
           borderRadius: radius.pill,
           alignItems: 'center',
           justifyContent: 'center',
@@ -35,10 +38,11 @@ export default function TabsLayout() {
           {
             backgroundColor: colors.surface,
             borderTopWidth: 0,
-            height: Platform.select({ ios: 88, default: 68 }),
+            height: 60 + insets.bottom,
             paddingTop: 8,
-            paddingBottom: Platform.select({ ios: 28, default: 10 }),
-            paddingHorizontal: 4,
+            paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+            // Pull items inward from rounded corners / side notches.
+            paddingHorizontal: Math.max(insets.left, insets.right, 8),
           },
           shadow(scheme, 3),
         ],
